@@ -1,0 +1,5 @@
+ID, Name, Enabled, IsBackground
+0,background,false,true
+1,Urban,true,false
+2,forest,true,false
+
