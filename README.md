@@ -1,103 +1,99 @@
 # LMUNet: Landscape Metrics U-Net
 
-> **Master's Thesis Project** — Predicting Neutral Landscape Model (NLM) Metrics Using Deep Learning
+> Master's thesis project — Predicting Neutral Landscape Model (NLM) metrics using deep learning
 
-## 📋 Overview
 
-This repository contains the code and resources for my Master's thesis, which explores the intersection of landscape ecology and deep learning. The core idea is to use a **U-Net neural network** to predict landscape metrics that are traditionally computed using established R packages in landscape ecology.
+## 📋 Quick summary
 
-### The Two-Part Approach
+LMUNet investigates whether a convolutional model (U-Net) can learn to predict landscape metrics that are usually computed using dedicated R packages. The repository contains the R code used to generate Neutral Landscape Models (NLMs) and compute reference metrics, plus Python code and notebooks to train and evaluate models that predict those metrics from landscape images.
 
-| Part | Language | Purpose |
-|------|----------|---------|
-| **1. NLM Generation & Metrics** | R | Generate Neutral Landscape Models (NLMs) using the `NLMR` package and compute landscape metrics using `landscapemetrics` |
-| **2. U-Net Training** | Python (PyTorch) | Train a modified U-Net to predict those same landscape metrics directly from landscape images |
 
-## 🎯 Research Goal
+## 🚀 Highlights
 
-The traditional calculation of landscape metrics can be computationally expensive, especially at scale. This project investigates whether a deep learning model can learn to predict these metrics efficiently, potentially enabling:
+- Two-part workflow: R-based NLM generation & metric calculation, and Python-based U-Net training & evaluation
+- Custom NaN-aware loss functions to handle undefined metrics
+- Multiple experiments and notebooks exploring single- and multi-metric training
 
-- Faster metric computation for large-scale landscape analysis
-- New insights into what visual features correlate with specific metrics
-- A bridge between computer vision and landscape ecology
 
-## 🗂️ Repository Structure
+## 📁 Repository structure (high-level)
 
-```
-MasterThesisLMUNet/
-├── Masterarbeit_R/                    # R-based NLM generation and metric calculation
-│   └── LMUnet/
-│       ├── generate_landscapes.R      # Generate NLMs using NLMR package
-│       ├── landscapemetrics.R         # Calculate metrics using landscapemetrics
-│       ├── NLMR_Overview_and_Tips.Rmd # Documentation for NLMR usage
-│       └── ...
-├── lmunet_downloadfolder_linuxmint/   # Python notebooks and modules
-│   ├── LMUNet_nice_original_working.ipynb  # Main training notebook
-│   ├── LMUnet_Imports.py              # Common imports
-│   ├── LMUnet_custom_loss_functions.py # Custom loss functions (NaN handling)
-│   ├── LMUnet_graph_operations.py     # Graph and visualization utilities
-│   ├── LMUnet_optimize_one_landscape.py # Optimization scripts
-│   └── LMUNet_metrics*.ipynb          # Various metric training experiments
-├── initial--backup/                   # Backup of initial working versions
-└── LMUNet_06 (1).ipynb               # Additional notebook version
-```
+- `Masterarbeit_R/` — R scripts and notes for generating NLMs and computing metrics (uses `NLMR`, `landscapemetrics`)
+- `lmunet_downloadfolder_linuxmint/` — Python notebooks and modules (training, losses, graphs, optimizers, visualization)
+- `initial--backup/` — project backups
+- `older versions/` — legacy copies (ignored by `.gitignore`)
 
-## 🔧 Technical Stack
 
-### R Components
-- **NLMR**: Neutral Landscape Model generation
-- **landscapemetrics**: Landscape metric calculation (FRAGSTATS-compatible)
-- **raster**: Raster data handling
-- **landscapetools**: Visualization utilities
+## 🧭 Getting started
 
-### Python Components
-- **PyTorch**: Deep learning framework
-- **Custom U-Net**: Modified architecture for metric prediction (regression)
-- **torcheval**: Evaluation metrics (MSE, R² Score)
-- **Custom Loss Functions**: NaN-aware Huber and MSE losses
+### Recommended (short) checklist
 
-## ⚠️ Current State & Future Work
+1. Create a Python environment and install dependencies (see **Missing items** below). Example:
+   - `python -m venv .venv && source .venv/bin/activate`
+   - `pip install -r requirements.txt` (not included — see **Missing items**)
+2. If reproducing NLMs / metrics: install R and the required packages (`NLMR`, `landscapemetrics`, `raster`, `landscapetools`).
+3. Run the R scripts in `Masterarbeit_R/` to generate landscapes and metrics, or use precomputed data (if available).
+4. Open the main training notebook `lmunet_downloadfolder_linuxmint/LMUNet_nice_original_working.ipynb` and follow the cells for data loading, training, and evaluation.
 
-> **Note**: This repository is in an archival state from ~2 years ago. The code was originally run via SSH on an HPC cluster and may require adjustments to run on different hardware setups.
 
-### Planned Improvements
+## 🧾 Notable files
 
-- [ ] **Clean up repository**: Remove duplicates and organize files
-- [ ] **Make reproducible**: Add proper requirements, environment files, and documentation
-- [ ] **Update dependencies**: Ensure compatibility with current package versions
-- [ ] **Add data pipeline**: Document the full data generation → training pipeline
-- [ ] **Potential publication**: Prepare for academic publication
+- `Masterarbeit_R/generate_landscapes.R` — NLM generation
+- `Masterarbeit_R/landscapemetrics.R` — metric calculations (reference implementation)
+- `lmunet_downloadfolder_linuxmint/LMUnet_Imports.py` — shared imports and helpers
+- `lmunet_downloadfolder_linuxmint/LMUnet_custom_loss_functions.py` — NaN-aware loss functions
+- `lmunet_downloadfolder_linuxmint/LMUnet_graph_operations.py` — visualization & helper functions
+- `lmunet_downloadfolder_linuxmint/LMUnet_optimize_one_landscape.py` — optimization experiments
+- Notebooks (`LMUNet_*.ipynb`) — various experiments and metric analyses
 
-## 🖥️ Hardware Requirements
 
-The original training was performed on:
-- HPC cluster via SSH
-- GPU acceleration (CUDA-enabled)
-- Significant memory for large landscape datasets (100k+ samples)
+## 📚 Data
 
-## 📊 Key Concepts
+- The repository does not contain raw landscape datasets by default (to avoid large files).
+- Expect training data to be folders of raster images and precomputed metric labels; add your dataset path in the notebooks or helper scripts when running experiments.
 
-### Landscape Metrics Predicted
-The model predicts various landscape-level metrics including:
-- Aggregation Index (AI)
-- Diversity metrics (MSIDI, etc.)
-- Core area metrics
-- And 60+ other metrics in multi-channel configurations
 
-### Model Architecture
-A modified U-Net architecture adapted for:
-- **Input**: Landscape raster images (128×128, multi-class categorical)
-- **Output**: Metric maps or scalar metric values
-- **Training**: MSE/Huber loss with NaN handling for undefined metrics
+## ⚙️ Technical stack
 
-## 📝 License
+- R: `NLMR`, `landscapemetrics`, `raster`, `landscapetools`
+- Python: `pytorch`, `torcheval` (used for metrics), common utils (numpy, pandas, matplotlib)
 
-*To be added*
 
-## 👤 Author
+## ✅ What I changed / added (README only)
+- Rewrote README to provide clear Getting Started steps, file references, and a short checklist of missing items/next steps.
 
-Jonathan Gehret
+
+## ⚠️ Known missing items & recommendations
+
+- Requirements: **`requirements.txt`** has been added — install with `pip install -r requirements.txt`. Note: install `torch` according to your CUDA/CPU setup (see PyTorch installation instructions).
+- License: there is no license file. Add `LICENSE` (e.g., MIT, CC-BY) so others know how they can use the code.
+- Tests / CI: add a small test suite and a basic CI (GitHub Actions) to run linters and tests on push.
+- Data samples: include a small sample dataset and a script/notebook to show end-to-end reproducibility (generation → training → evaluation).
+- File cleanup: there are many duplicated/legacy files (e.g., files with ` (1)` suffix and the `older versions/` folder). Consider a cleanup pass and canonical naming.
+
+
+## 🛠️ Suggested next steps
+
+1. (completed) `requirements.txt` has been added. Optional: create an `environment.yml` for conda and an R requirements script (e.g., `install_R_packages.R`) if you want a conda-based setup.
+2. Add a `LICENSE` file and a brief `CONTRIBUTING.md` if you plan to accept external contributions.
+3. Add a small sample dataset with a short `examples/` notebook that runs end-to-end quickly.
+4. Introduce basic tests and a CI pipeline (lint, unit tests, notebook check).
+
+
+## 🤝 Contributing
+
+If you'd like help cleaning up the repo (renaming files, consolidating notebooks), I can assist with a focused cleanup plan and scripted refactors. I can also help scaffold `requirements.txt`, `environment.yml`, or a GitHub Actions workflow.
+
+
+## 📬 Contact
+
+Author: Jonathan Gehret
+
 
 ---
 
-*This README will be updated as the repository cleanup progresses.*
+*If you'd like, I can now (pick one):*
+- Add a `requirements.txt` with the packages inferred from the repository, or
+- Create an `environment.yml` for conda use, or
+- Add a simple `LICENSE` (MIT) and `CONTRIBUTING.md` template.
+
+Tell me which of the above you'd like me to do next.

@@ -1,0 +1,24 @@
+# LMUNet minimal Python requirements
+# Install with: pip install -r requirements.txt
+# Note: Install `torch` following the instructions for your CUDA/CPU configuration at https://pytorch.org/
+
+torch
+torchvision
+torcheval
+numpy
+pandas
+matplotlib
+opencv-python
+scipy
+scikit-learn
+tqdm
+networkx
+jupyter
+ipython
+notebook
+
+# Optional / helpful (add if you use these):
+# pillow
+# scikit-image
+# seaborn
+# torchmetrics
