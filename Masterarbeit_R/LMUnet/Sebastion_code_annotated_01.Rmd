@@ -1,0 +1,101 @@
+---
+title: "Sebastions_code"
+output: html_document
+date: '2023-01-21'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+First we load libraries:
+
+```{r}
+library(furrr)
+library(tidyverse)
+library(NLMR)
+future::plan(multisession) # parallel computing
+```
+
+Then we set:
+  - the number of loops n,
+  - the vector ai1 of decimal numbers length n
+  - the vector a2, based one value between lowest value of ai1 and  and 
+    update ai2 with more numbers like previous limitations
+  - p mit nochmal n numbers, genau wie ai1 generiert
+  
+```{r}
+n <- 10   
+ai1 <- runif(n, min = 0.1, max = 0.9)   
+ai2 <- runif(1, min = ai1[1], max = 0.99)
+for (i in 2:n) {
+  ai2 <- c(ai2, runif(1, min = ai1[i], max = 0.99)) 
+}
+p <- runif(n, min = 0.1, max = 0.9) 
+```
+
+Als nächstes wird eine Funktion um die Landschaften zu generieren definiert,
+und zwar mittels nlm_randomcluster(). Dieses basiert auf dem Verfahren zur 
+neutralen Landschafstgenerierung nach Saura & Martínez-Millán (2000)?
+P steht dabei für die Proportion of elements randomly selected to form clusters.
+ai ist der Vector mit der Cluster Type Verteilung. Also Länge von ai ist Anzahl 
+der Cluster während der Wert den Anteil ausmacht. Neighborhood ist entweder 4
+(ein Schritt nach oben, unten, links oder rechts) oder 8 (alle acht drumherum).
+Rescale skaliert zwischen 0 und 1, was bei den Werten hier irrelevant ist.
+
+
+```{r}
+generate_landscape <- function(p, ai1, ai2) {  
+  nlm_randomcluster(ncol = 128, nrow = 128, 
+                    resolution = 1, p = p,    
+                    ai = c(ai1, ai2), 
+                    neighbourhood = 4,
+                    rescale = FALSE) 
+}
+```
+
+Als nächstes ein Gradientenberechner, um das ganze schön abzurunden?
+
+
+```{r}
+generate_gradient <- function() {
+  nlm_edgegradient(ncol = 128, nrow = 128,
+                   resolution = 1,
+                   rescale = FALSE)
+}
+```
+
+Ein Dataframe tibble mit all den Werten p, ai1 und ai2 wird erstellt:
+
+```{r}
+param_df = tibble(p = p, ai1 = ai1, ai2 = ai2)
+```
+
+Next there is a line for parallel generation of the n landscapes (with a seed),
+taking the parameters that were assigned earlier.
+
+```{r}
+nlm_randomcluster_landscapes <- param_df |> 
+  furrr::future_pmap(generate_landscape, .options = furrr_options(seed = TRUE))
+```
+
+These landscapes are then plotted:
+
+```{r}
+landscapetools::show_landscape(nlm_randomcluster_landscapes |> raster::stack())
+```
+
+The gradient is added to the landscapes and plotted, but do we really need that??
+
+```{r}
+nlm_randomcluster_gradient_landscapes <- sample(nlm_randomcluster_landscapes, size = 10) |> future_map(.f = function(ls) {
+  ls + generate_gradient()
+}, .options = furrr_options(seed = TRUE))
+
+landscapetools::show_landscape(nlm_randomcluster_gradient_landscapes |> raster::stack())
+```
+
+
+
+
+
