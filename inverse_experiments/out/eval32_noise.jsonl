@@ -1,0 +1,3 @@
+{"exact_layout": 0.42, "windows_all_metrics_exact": 0.985234375, "metric_values_exact": 0.9902987234933035, "test": "data/test32.npz", "n": 100, "input_noise_sd": 0.05, "median_valid_labellings": 8928.0, "share_capped_at_10000": 0.48}
+{"exact_layout": 0.08, "windows_all_metrics_exact": 0.91140625, "metric_values_exact": 0.9351112583705359, "test": "data/test32.npz", "n": 100, "input_noise_sd": 0.1, "median_valid_labellings": 10000.0, "share_capped_at_10000": 0.58}
+{"exact_layout": 0.0, "windows_all_metrics_exact": 0.5209375, "metric_values_exact": 0.6189794921874999, "test": "data/test32.npz", "n": 100, "input_noise_sd": 0.2, "median_valid_labellings": 10000.0, "share_capped_at_10000": 0.93}
