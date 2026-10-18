@@ -1,0 +1,10 @@
+{"mode": "metrics", "size": 16, "idx": 0, "p": 0.49, "n_classes": 3, "n_patches_8": 5, "solutions": 10, "local_partitions": 1, "max_pixels_changed": 31, "nodes": 6849, "timeout": false, "seconds": 5.2}
+{"mode": "metrics", "size": 16, "idx": 1, "p": 0.13, "n_classes": 4, "n_patches_8": 10, "solutions": 1, "local_partitions": 1, "max_pixels_changed": 0, "nodes": 5787, "timeout": false, "seconds": 0.7}
+{"mode": "metrics", "size": 16, "idx": 2, "p": 0.19, "n_classes": 4, "n_patches_8": 14, "solutions": 6, "local_partitions": 1, "max_pixels_changed": 199, "nodes": 8444, "timeout": false, "seconds": 1.9}
+{"mode": "metrics", "size": 16, "idx": 3, "p": 0.58, "n_classes": 5, "n_patches_8": 9, "solutions": 9, "local_partitions": 1, "max_pixels_changed": 59, "nodes": 8172, "timeout": false, "seconds": 1.3}
+{"mode": "metrics", "size": 16, "idx": 4, "p": 0.19, "n_classes": 5, "n_patches_8": 16, "solutions": 1, "local_partitions": 1, "max_pixels_changed": 62, "nodes": 5931, "timeout": false, "seconds": 0.9}
+{"mode": "metrics", "size": 16, "idx": 5, "p": 0.27, "n_classes": 5, "n_patches_8": 16, "solutions": 1, "local_partitions": 1, "max_pixels_changed": 89, "nodes": 6171, "timeout": false, "seconds": 1.2}
+{"mode": "metrics", "size": 16, "idx": 6, "p": 0.32, "n_classes": 5, "n_patches_8": 23, "solutions": 2, "local_partitions": 1, "max_pixels_changed": 116, "nodes": 7879, "timeout": false, "seconds": 2.3}
+{"mode": "metrics", "size": 16, "idx": 7, "p": 0.49, "n_classes": 5, "n_patches_8": 8, "solutions": 12, "local_partitions": 1, "max_pixels_changed": 106, "nodes": 8351, "timeout": false, "seconds": 1.2}
+{"mode": "metrics", "size": 16, "idx": 8, "p": 0.15, "n_classes": 4, "n_patches_8": 7, "solutions": 3, "local_partitions": 1, "max_pixels_changed": 9, "nodes": 6321, "timeout": false, "seconds": 0.8}
+{"mode": "metrics", "size": 16, "idx": 9, "p": 0.18, "n_classes": 4, "n_patches_8": 15, "solutions": 8, "local_partitions": 1, "max_pixels_changed": 34, "nodes": 8113, "timeout": false, "seconds": 1.3}
