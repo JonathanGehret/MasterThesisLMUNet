@@ -194,3 +194,85 @@ def decode_avg(prob, k=5, limit=1):
     if not sols:  # inconsistent or too hard: least-conflict greedy labelling
         sols = [greedy_colouring(node.max() + 1, edges, diff, k)]
     return [np.array(s)[node] for s in sols], node, edges
+
+
+def decode_fast(prob, k=5, limit=1, sure=0.95):
+    """Faster decode_avg: first merge neighbour pixels that are almost surely
+    the same class (vectorised connected components), then run the same
+    average-linkage merging on these groups instead of on single pixels."""
+    import heapq
+    from scipy.sparse import coo_matrix
+    from scipy.sparse.csgraph import connected_components
+    K, H, W = prob.shape
+    ii, jj, pp = [], [], []
+    idx = np.arange(H * W).reshape(H, W)
+    for kk, (di, dj) in enumerate(OFFSETS):
+        r1, c0, c1 = H - di, max(0, -dj), W - max(0, dj)
+        ii.append(idx[:r1, c0:c1].ravel())
+        jj.append(idx[di:, c0 + dj:c1 + dj].ravel())
+        pp.append(prob[kk, :r1, c0:c1].ravel())
+    ii, jj, pp = np.concatenate(ii), np.concatenate(jj), np.concatenate(pp).astype(np.float64)
+    near = np.zeros(len(ii), bool)
+    o = 0
+    for kk, (di, dj) in enumerate(OFFSETS):
+        n = (H - di) * (W - abs(dj))
+        near[o:o + n] = max(abs(di), abs(dj)) == 1
+        o += n
+    m = near & (pp > sure)
+    g = coo_matrix((np.ones(m.sum()), (ii[m], jj[m])), shape=(H * W, H * W))
+    _, comp = connected_components(g, directed=False)
+    # sum of probabilities and pair counts between groups (vectorised)
+    a, b = comp[ii], comp[jj]
+    keep = a != b
+    a, b, p = np.minimum(a, b)[keep], np.maximum(a, b)[keep], pp[keep]
+    key = a.astype(np.int64) * (H * W) + b
+    uk, inv = np.unique(key, return_inverse=True)
+    s = np.bincount(inv, weights=p)
+    c = np.bincount(inv).astype(np.float64)
+    ua, ub = uk // (H * W), uk % (H * W)
+    nbr = {}
+    for x, y, sx, cx in zip(ua.tolist(), ub.tolist(), s.tolist(), c.tolist()):
+        e = [sx, cx]
+        nbr.setdefault(x, {})[y] = e
+        nbr.setdefault(y, {})[x] = e
+    groups = np.unique(comp)
+    for gg in groups.tolist():
+        nbr.setdefault(gg, {})
+    dsu = DSU(int(comp.max()) + 1)
+    alive = set(groups.tolist())
+    heap = [(-e[0] / e[1], x, y) for x, d in nbr.items() for y, e in d.items() if x < y and e[0] / e[1] > 0.5]
+    heapq.heapify(heap)
+    while heap:
+        negm, x, y = heapq.heappop(heap)
+        if x not in alive or y not in alive or y not in nbr[x]:
+            continue
+        sm, cnt = nbr[x][y]
+        if abs(sm / cnt + negm) > 1e-12:
+            continue
+        alive.discard(y)
+        dsu.p[y] = x
+        del nbr[x][y]
+        for z, (sz, cz) in nbr[y].items():
+            if z == x:
+                continue
+            del nbr[z][y]
+            if z in nbr[x]:
+                e = nbr[x][z]; e[0] += sz; e[1] += cz
+            else:
+                e = [sz, cz]; nbr[x][z] = e; nbr[z][x] = e
+            if e[0] / e[1] > 0.5:
+                heapq.heappush(heap, (-e[0] / e[1], min(x, z), max(x, z)))
+        nbr[y] = {}
+    root = np.array([dsu.find(int(v)) for v in range(int(comp.max()) + 1)])[comp]
+    ids = {v: i for i, v in enumerate(np.unique(root).tolist())}
+    node = np.vectorize(ids.get)(root).reshape(H, W)
+    diff = {}
+    for x in alive:
+        for z, (sm, cnt) in nbr[x].items():
+            e = (min(ids[x], ids[z]), max(ids[x], ids[z]))
+            diff[e] = 1 - sm / cnt
+    edges = sorted(diff, key=lambda e: -diff[e])
+    sols = colourings(node.max() + 1, edges, k, limit)
+    if not sols:
+        sols = [greedy_colouring(node.max() + 1, edges, diff, k)]
+    return [np.array(s_)[node] for s_ in sols], node, edges

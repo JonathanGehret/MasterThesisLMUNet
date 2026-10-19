@@ -1,0 +1,2 @@
+start (inverse network alone): windows exact 0.97393798828125
+{"method": "optimise through frozen forward model (Gumbel straight-through)", "forward": "data/forward.pt", "cfg": {"lr": 0.03, "tau0": 0.5, "tau1": 0.3, "noise": 0.1, "soft_frac": 0.0, "init": "data/inverse_noise0.3.pt"}, "n": 16, "steps": 1000, "restarts": 1, "loss_true_landscape": 0.06472495198249817, "loss_found": 0.06911311345174909, "found_lower_loss_than_truth": 0.25, "exact_layout": 0.0, "windows_all_metrics_exact": 0.97393798828125}
