@@ -161,6 +161,67 @@ One 128x128 map takes about 1 min to decode, 2.5 min to repair, and up to
 ~15 min in the finisher (pure Python). The unsolved maps still have mismatched
 windows, so they are flagged rather than silently wrong.
 
+## Part 4: networks only (no exact metric formulas at run time)
+
+Goal: forward and backward with networks only, plus at most small, fast steps.
+
+### Forward v2 (`forward2.py`)
+Same shape as `forward.py` (5x5 conv + per-pixel MLP, width 384, 6 layers) but
+trained on the 9.25 million *distinct* 5x5 windows of the 32x32 and 64x64
+training maps (each window once, random rotations/flips/relabelling), 9 epochs
+(5 + 4 resumed; `out/train_forward2*.log`).
+
+| Forward model | mean R2 | median R2 | worst metric R2 |
+|---|---|---|---|
+| v1 (`forward.py`) | 0.85 | 0.94 | - |
+| v2 (`forward2.py`) | 0.98 | 0.995 | 0.85 |
+
+Note: only ~3.2 M distinct windows occur in 12 M windows of the 32x32 data; a
+lookup table of exact values covers 80 % of windows in new 128x128 maps
+(`window_table.py`), an exact alternative to a forward network.
+
+### Thesis method with softmax fix (`gumbel_invert.py`)
+Optimising 5 scores per pixel through the frozen forward model
+(straight-through Gumbel-softmax), 32x32 test maps:
+
+| Start | Forward model | Exact maps | Windows exact |
+|---|---|---|---|
+| random (best of 5 settings) | v1 | 0 / 8 | 30 % |
+| random | v2 | 0 / 8 | 11 % |
+| inverse network's answer (already exact) | v1 | stays exact | 100 % |
+| inverse network's answer, 16 hard cases | v1 / v2 | no improvement | 97 % |
+
+From random starts it gets stuck far from the truth (loss 0.3-1.1 vs 0.06/0.009
+for the true maps). With v1, the wrong answer scored better than the truth in
+4/16 hard cases, so the forward model could not even tell them apart.
+
+### Inverse v2 (`train2.py`) + decoding fixes
+Trained on 32x32 and 64x64 maps; half of each batch uses forward-v2 predicted
+metrics. Decoding: labelling falls back to a weighted tabu search
+(`tabu_colouring`) instead of a greedy guess, with constraints weighted by the
+evidence behind them (summed over pixel pairs). The greedy fallback had merged
+whole patches on 3 of 12 128x128 maps.
+
+### NN polish (`nn_polish.py`)
+For pairs of nearby label groups separated on weak evidence, try giving them the
+same label and keep it if *forward v2* says the metrics fit better. No exact
+formulas; ~0.5 s (32x32) to ~1 s (128x128) on top of decoding.
+
+Results, network only vs network + NN polish (`out/eval_polish_v2.jsonl`):
+
+| Map size | Input | Exact maps: network | + NN polish | Windows exact (+ polish) |
+|---|---|---|---|---|
+| 32x32 (200) | exact metrics | 78.5 % | 86.5 % | 99.8 % |
+| 32x32 (200) | forward-v2 predicted | 74.5 % | 82.5 % | 99.8 % |
+| 64x64 (60) | exact metrics | 40 % | 53 % | 99.8 % |
+| 64x64 (60) | forward-v2 predicted | 42 % | 58 % | 99.8 % |
+| 128x128 (12) | exact metrics | 2 / 12 | 3 / 12 | 99.75 % |
+| 128x128 (12) | forward-v2 predicted | 2 / 12 | 3 / 12 | 99.7 % |
+
+Timing per 128x128 map: networks ~0.1 s each, decoding ~10 s (pure Python).
+Remaining errors are mostly label decisions between patches that only just
+share a window (1-3 pixel pairs of evidence).
+
 ## Consequence for solving the inverse
 
 1. Metrics → spatial layout (patch boundaries + same/different class for nearby

@@ -92,6 +92,51 @@ def greedy_colouring(n_nodes, edges, weight, k=5):
     return col
 
 
+def tabu_colouring(n_nodes, edges, weight, k=5, iters=30000, seed=0):
+    """Weighted tabu search for a k-colouring: minimise the total confidence of
+    must-differ constraints that end up with equal labels. Finds a conflict-free
+    labelling when one exists (usually within a few hundred moves)."""
+    rng = np.random.default_rng(seed)
+    nb = [[] for _ in range(n_nodes)]
+    for a, b in edges:
+        w = weight.get((a, b), 1.0)
+        nb[a].append((b, w)); nb[b].append((a, w))
+    col = np.array(greedy_colouring(n_nodes, edges, weight, k))
+    # cost[v, c] = total weight of v's neighbours that have colour c
+    cost = np.zeros((n_nodes, k))
+    for v in range(n_nodes):
+        for u, w in nb[v]:
+            cost[v, col[u]] += w
+    total = sum(cost[v, col[v]] for v in range(n_nodes)) / 2
+    best_total, best_col = total, col.copy()
+    tabu = np.zeros((n_nodes, k), int)
+    for it in range(iters):
+        if best_total <= 1e-12:
+            break
+        conf = np.where(cost[np.arange(n_nodes), col] > 0)[0]
+        if len(conf) == 0:
+            break
+        delta = cost[conf] - cost[conf, col[conf]][:, None]      # change in cost per move
+        delta[np.arange(len(conf)), col[conf]] = np.inf
+        allowed = tabu[conf] <= it
+        cand = np.where(allowed | (total + delta < best_total - 1e-12), delta, np.inf)
+        if not np.isfinite(cand).any():
+            continue
+        m = cand.min()
+        options = np.argwhere(cand == m)
+        i, c = options[rng.integers(len(options))]
+        v, old = conf[i], col[conf[i]]
+        for u, w in nb[v]:
+            cost[u, old] -= w
+            cost[u, c] += w
+        col[v] = c
+        total += m
+        tabu[v, old] = it + 7 + rng.integers(10)
+        if total < best_total - 1e-12:
+            best_total, best_col = total, col.copy()
+    return best_col.tolist()
+
+
 def colourings(n_nodes, edges, k=5, limit=1, first_canonical=True, node_limit=200000):
     """Backtracking k-colouring (DSatur order). Returns up to `limit` solutions,
     counting global relabelings once. Gives up after node_limit steps."""
@@ -127,8 +172,8 @@ def decode(prob, k=5, limit=1):
     node, diff = build_constraints(prob)
     edges = sorted(diff, key=lambda e: -diff[e])
     sols = colourings(node.max() + 1, edges, k, limit)
-    if not sols:  # inconsistent or too hard: least-conflict greedy labelling
-        sols = [greedy_colouring(node.max() + 1, edges, diff, k)]
+    if not sols:  # too hard for exact search, or inconsistent: tabu search
+        sols = [tabu_colouring(node.max() + 1, edges, diff, k)]
     return [np.array(s)[node] for s in sols], node, edges
 
 
@@ -183,7 +228,9 @@ def build_constraints_avg(prob, thr=0.5):
     for a in alive:
         for x, (sm, cnt) in nbr[a].items():
             e = (min(ids[a], ids[x]), max(ids[a], ids[x]))
-            diff[e] = 1 - sm / cnt
+            # evidence that the two groups differ, summed over all their pixel
+            # pairs: a long shared border counts much more than one corner pair
+            diff[e] = cnt - sm
     return node, diff
 
 
@@ -191,8 +238,8 @@ def decode_avg(prob, k=5, limit=1):
     node, diff = build_constraints_avg(prob)
     edges = sorted(diff, key=lambda e: -diff[e])
     sols = colourings(node.max() + 1, edges, k, limit)
-    if not sols:  # inconsistent or too hard: least-conflict greedy labelling
-        sols = [greedy_colouring(node.max() + 1, edges, diff, k)]
+    if not sols:  # too hard for exact search, or inconsistent: tabu search
+        sols = [tabu_colouring(node.max() + 1, edges, diff, k)]
     return [np.array(s)[node] for s in sols], node, edges
 
 
@@ -274,5 +321,5 @@ def decode_fast(prob, k=5, limit=1, sure=0.95):
     edges = sorted(diff, key=lambda e: -diff[e])
     sols = colourings(node.max() + 1, edges, k, limit)
     if not sols:
-        sols = [greedy_colouring(node.max() + 1, edges, diff, k)]
+        sols = [tabu_colouring(node.max() + 1, edges, diff, k)]
     return [np.array(s_)[node] for s_ in sols], node, edges

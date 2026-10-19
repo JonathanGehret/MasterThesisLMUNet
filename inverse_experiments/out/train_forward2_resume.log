@@ -1,0 +1,5 @@
+distinct windows: 9,251,158 (251s)
+epoch 1/4 loss 0.00349 mean_R2 0.9607 median_R2 0.9883 min_R2 0.7696 windows_all_metrics_within_0.01sd 0.0000 (1248s)
+epoch 2/4 loss 0.00275 mean_R2 0.9733 median_R2 0.9885 min_R2 0.8178 windows_all_metrics_within_0.01sd 0.0000 (1253s)
+epoch 3/4 loss 0.00226 mean_R2 0.9797 median_R2 0.9949 min_R2 0.8454 windows_all_metrics_within_0.01sd 0.0000 (1234s)
+epoch 4/4 loss 0.00206 mean_R2 0.9806 median_R2 0.9946 min_R2 0.8450 windows_all_metrics_within_0.01sd 0.0000 (1241s)

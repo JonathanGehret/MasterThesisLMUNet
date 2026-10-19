@@ -15,7 +15,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from forward import ForwardNet, onehot
+from forward import ForwardNet, onehot, load_forward
 from inverse_model import Normalizer  # noqa: F401
 from evaluate import metric_match
 from enumerate_preimages import local_partition
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 6:
         CFG.update(json.loads(sys.argv[6]))
     torch.set_num_threads(4)
-    model = ForwardNet(); model.load_state_dict(torch.load(fwd_path)); model.eval()
+    model = load_forward(fwd_path)
     for p in model.parameters():
         p.requires_grad_(False)
     norm = pickle.load(open("data/normalizer.pkl", "rb"))

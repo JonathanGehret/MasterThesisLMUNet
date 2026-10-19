@@ -1,0 +1,4 @@
+epoch 1/4 loss 0.0022 pair_acc exact_input 0.99938 predicted_input 0.99936 (1178s)
+epoch 2/4 loss 0.0016 pair_acc exact_input 0.99951 predicted_input 0.99949 (1162s)
+epoch 3/4 loss 0.0013 pair_acc exact_input 0.99960 predicted_input 0.99957 (1136s)
+epoch 4/4 loss 0.0011 pair_acc exact_input 0.99961 predicted_input 0.99959 (1141s)

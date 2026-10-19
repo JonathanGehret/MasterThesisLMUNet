@@ -6,7 +6,9 @@ window (up to relabelling) exactly once, with random rotations/flips.
 The network is the same shape as ForwardNet (5x5 conv + per-pixel MLP), so the
 trained weights run on full maps of any size.
 
-Usage: python forward2.py EPOCHS WIDTH LAYERS
+Usage: python forward2.py EPOCHS WIDTH LAYERS [RESUME_WEIGHTS LR]
+With RESUME_WEIGHTS, training continues from those weights with a cosine
+decaying learning rate starting at LR (no warm-up).
 """
 import pickle
 import sys
@@ -76,8 +78,14 @@ if __name__ == "__main__":
     model = ForwardNet(c=width, n_layers=layers)
     bs = 1024
     steps = epochs * (len(K) // bs)
-    opt = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-5)
-    sched = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=1e-3, total_steps=steps)
+    if len(sys.argv) > 4:
+        model.load_state_dict(torch.load(sys.argv[4]))
+        lr = float(sys.argv[5])
+        opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-5)
+        sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=steps)
+    else:
+        opt = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-5)
+        sched = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=1e-3, total_steps=steps)
     for ep in range(epochs):
         model.train()
         perm = torch.randperm(len(K))

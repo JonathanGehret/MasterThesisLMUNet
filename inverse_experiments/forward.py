@@ -95,3 +95,14 @@ if __name__ == "__main__":
         print(f"epoch {ep + 1}/{epochs} loss {tot / (b + 1):.4f} mean_R2 {np.mean(r2):.4f} "
               f"median_R2 {np.median(r2):.4f} nan_acc {nan_acc:.4f} ({time.time() - t0:.0f}s)", flush=True)
         torch.save(model.state_dict(), "data/forward.pt")
+
+
+def load_forward(path):
+    """Load a ForwardNet, reading its width and depth from the saved weights."""
+    sd = torch.load(path)
+    c = sd["inp.weight"].shape[0]
+    n_layers = len({k.split(".")[1] for k in sd if k.startswith("layers.")})
+    model = ForwardNet(c=c, n_layers=n_layers)
+    model.load_state_dict(sd)
+    model.eval()
+    return model
