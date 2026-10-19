@@ -1,0 +1,16 @@
+/home/user/MasterThesisLMUNet/inverse_experiments/inverse_model.py:33: RuntimeWarning: Mean of empty slice
+  self.mu = np.nanmean(x, axis=(0, 2, 3))
+/usr/local/lib/python3.13/dist-packages/numpy/lib/_nanfunctions_impl.py:1997: RuntimeWarning: Degrees of freedom <= 0 for slice.
+  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+epoch 1/12 loss 0.0202 pair_acc 0.99824 landscapes_all_pairs_right 0.045 (276s)
+epoch 2/12 loss 0.0065 pair_acc 0.99791 landscapes_all_pairs_right 0.035 (282s)
+epoch 3/12 loss 0.0062 pair_acc 0.99768 landscapes_all_pairs_right 0.030 (277s)
+epoch 4/12 loss 0.0056 pair_acc 0.99806 landscapes_all_pairs_right 0.035 (260s)
+epoch 5/12 loss 0.0048 pair_acc 0.99792 landscapes_all_pairs_right 0.035 (262s)
+epoch 6/12 loss 0.0041 pair_acc 0.99855 landscapes_all_pairs_right 0.050 (268s)
+epoch 7/12 loss 0.0034 pair_acc 0.99883 landscapes_all_pairs_right 0.060 (258s)
+epoch 8/12 loss 0.0028 pair_acc 0.99898 landscapes_all_pairs_right 0.080 (253s)
+epoch 9/12 loss 0.0023 pair_acc 0.99917 landscapes_all_pairs_right 0.105 (275s)
+epoch 10/12 loss 0.0018 pair_acc 0.99928 landscapes_all_pairs_right 0.095 (257s)
+epoch 11/12 loss 0.0015 pair_acc 0.99934 landscapes_all_pairs_right 0.115 (260s)
+epoch 12/12 loss 0.0013 pair_acc 0.99935 landscapes_all_pairs_right 0.105 (268s)

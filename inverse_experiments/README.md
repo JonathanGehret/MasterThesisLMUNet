@@ -82,9 +82,25 @@ The first decoder (`decode`, simple union of neighbours) reached only 44 % /
 reconstruction from metrics only, and three alternative labellings; all have
 identical metrics in 100 % of windows.
 
-Limits: the network was trained on exact metrics only, so it is fragile to
-noise (U-Net-predicted metrics with R2 ~0.95 are roughly the sd 0.2 case);
-training with noise is the obvious next step. 128x128 not tested.
+### Training with noise
+
+`python train.py 12 0.3 data/inverse_clean.pt`: continue from the clean model,
+adding Gaussian noise (sd drawn uniformly from 0 to 0.3, normalised units) to
+each training example (`out/train_noise.log`, `out/eval32_noise_trained.jsonl`,
+`out/eval32_noisemodel_clean.log`).
+
+| 32x32 test, input noise sd | Clean-trained model: exact layout / windows exact | Noise-trained model |
+|---|---|---|
+| 0 (network only) | 68.5 % / 99.2 % | 70.5 % / 99.6 % |
+| 0 (network + repair) | 78.5 % / 99.6 % | 80.5 % / 99.8 % |
+| 0.05 | 42 % / 98.5 % | 74 % / 99.5 % |
+| 0.1 | 8 % / 91 % | 78 % / 99.7 % |
+| 0.2 | 0 % / 52 % | 65 % / 99.6 % |
+
+(n = 100 for noisy rows, so differences of a few % are within chance.)
+
+Limits: Gaussian noise is only a stand-in for real U-Net errors, which are
+correlated in space and between metrics. 128x128 not tested.
 
 ## Consequence for solving the inverse
 
