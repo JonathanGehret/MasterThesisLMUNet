@@ -1,0 +1,8 @@
+epoch 1/8 loss 0.5406 mean_R2 0.5428 median_R2 0.5991 nan_acc 0.9905 (638s)
+epoch 2/8 loss 0.1533 mean_R2 0.7398 median_R2 0.8534 nan_acc 0.9937 (181s)
+epoch 3/8 loss 0.1018 mean_R2 0.7957 median_R2 0.9028 nan_acc 0.9963 (445s)
+epoch 4/8 loss 0.0829 mean_R2 0.8185 median_R2 0.9263 nan_acc 0.9967 (536s)
+epoch 5/8 loss 0.0734 mean_R2 0.8346 median_R2 0.9328 nan_acc 0.9972 (185s)
+epoch 6/8 loss 0.0677 mean_R2 0.8436 median_R2 0.9366 nan_acc 0.9977 (142s)
+epoch 7/8 loss 0.0647 mean_R2 0.8473 median_R2 0.9380 nan_acc 0.9979 (143s)
+epoch 8/8 loss 0.0637 mean_R2 0.8480 median_R2 0.9382 nan_acc 0.9979 (144s)

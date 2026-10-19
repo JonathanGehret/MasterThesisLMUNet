@@ -1,0 +1,2 @@
+{"model": "data/inverse_noise0.3.pt", "input": "forward-predicted metrics", "n": 200, "exact_layout": 0.03, "windows_all_metrics_exact": 0.8254638671875, "metric_values_exact": 0.8699131556919641}
+{"model": "data/inverse_noise0.3_fwd.pt", "input": "forward-predicted metrics", "n": 200, "exact_layout": 0.27, "windows_all_metrics_exact": 0.9630615234375, "metric_values_exact": 0.9745956856863839}

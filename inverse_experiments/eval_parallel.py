@@ -6,6 +6,7 @@ from inverse_model import InverseNet
 from decode import decode_avg as decode, colourings
 from evaluate import metric_match
 from repair import repair
+from finisher import finish
 from enumerate_preimages import local_partition
 
 
@@ -14,8 +15,9 @@ def work(a):
     sols, node, edges = decode(p)
     rec = sols[0]
     rep = repair(rec, m)
+    fin = finish(rep, m)
     out = {}
-    for name, x in (("network", rec), ("network+repair", rep)):
+    for name, x in (("network", rec), ("network+repair", rep), ("network+repair+finisher", fin)):
         w, c = metric_match(x, m)
         out[name] = dict(exact_layout=local_partition(x) == local_partition(ls),
                          windows_all_metrics_exact=w, metric_values_exact=c)
@@ -38,7 +40,7 @@ if __name__ == "__main__":
         for i, r in enumerate(pool.imap(work, zip(L, M, P))):
             res.append(r)
             print(f"{i + 1}/{n}", json.dumps(r), flush=True)
-    agg = {k: {m: float(np.mean([r[k][m] for r in res])) for m in res[0][k]} for k in ("network", "network+repair")}
+    agg = {k: {m: float(np.mean([r[k][m] for r in res])) for m in res[0][k]} for k in ("network", "network+repair", "network+repair+finisher")}
     lab = np.array([r["labellings"] for r in res])
     agg.update(test=tp, n=n, median_labellings=float(np.median(lab)), share_10000_or_more=float((lab >= 10000).mean()))
     print("SUMMARY", json.dumps(agg), flush=True)

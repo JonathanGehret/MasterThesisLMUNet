@@ -74,9 +74,27 @@ def build_constraints(prob, thr=0.5):
     return node, diff
 
 
-def colourings(n_nodes, edges, k=5, limit=1, first_canonical=True):
+def greedy_colouring(n_nodes, edges, weight, k=5):
+    """Fallback when exact colouring is too hard: DSatur-style greedy that
+    picks, for each node, the label violating the least total confidence."""
+    nb = [[] for _ in range(n_nodes)]
+    for a, b in edges:
+        w = weight.get((a, b), 1.0)
+        nb[a].append((b, w))
+        nb[b].append((a, w))
+    col = [-1] * n_nodes
+    for v in sorted(range(n_nodes), key=lambda v: -len(nb[v])):
+        cost = [0.0] * k
+        for u, w in nb[v]:
+            if col[u] >= 0:
+                cost[col[u]] += w
+        col[v] = int(np.argmin(cost))
+    return col
+
+
+def colourings(n_nodes, edges, k=5, limit=1, first_canonical=True, node_limit=200000):
     """Backtracking k-colouring (DSatur order). Returns up to `limit` solutions,
-    counting global relabelings once."""
+    counting global relabelings once. Gives up after node_limit steps."""
     nb = [set() for _ in range(n_nodes)]
     for a, b in edges:
         nb[a].add(b)
@@ -84,10 +102,12 @@ def colourings(n_nodes, edges, k=5, limit=1, first_canonical=True):
     order = sorted(range(n_nodes), key=lambda v: -len(nb[v]))
     col = [-1] * n_nodes
     sols = []
+    steps = [0]
 
     def rec(i, used):
-        if len(sols) >= limit:
+        if len(sols) >= limit or steps[0] > node_limit:
             return
+        steps[0] += 1
         if i == n_nodes:
             sols.append(col.copy())
             return
@@ -107,9 +127,8 @@ def decode(prob, k=5, limit=1):
     node, diff = build_constraints(prob)
     edges = sorted(diff, key=lambda e: -diff[e])
     sols = colourings(node.max() + 1, edges, k, limit)
-    while not sols and edges:  # inconsistent prediction: drop least certain constraint
-        edges = edges[:-1]
-        sols = colourings(node.max() + 1, edges, k, limit)
+    if not sols:  # inconsistent or too hard: least-conflict greedy labelling
+        sols = [greedy_colouring(node.max() + 1, edges, diff, k)]
     return [np.array(s)[node] for s in sols], node, edges
 
 
@@ -172,7 +191,6 @@ def decode_avg(prob, k=5, limit=1):
     node, diff = build_constraints_avg(prob)
     edges = sorted(diff, key=lambda e: -diff[e])
     sols = colourings(node.max() + 1, edges, k, limit)
-    while not sols and edges:
-        edges = edges[:-1]
-        sols = colourings(node.max() + 1, edges, k, limit)
+    if not sols:  # inconsistent or too hard: least-conflict greedy labelling
+        sols = [greedy_colouring(node.max() + 1, edges, diff, k)]
     return [np.array(s)[node] for s in sols], node, edges

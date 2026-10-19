@@ -102,6 +102,65 @@ each training example (`out/train_noise.log`, `out/eval32_noise_trained.jsonl`,
 Limits: Gaussian noise is only a stand-in for real U-Net errors, which are
 correlated in space and between metrics. 128x128 not tested.
 
+## Part 3: exact finisher, realistic (U-Net-like) errors, 128x128
+
+### Exact finisher (`finisher.py`)
+
+After `repair`, any window whose metrics still do not match is fixed by exact
+search with the real metric formulas:
+1. whole-patch relabel moves,
+2. an exact search over the labels of all patches near the mismatch,
+3. an exact search over the labels of *all* patches on the map (shapes kept),
+   for label errors that chain across the map,
+4. an exhaustive search over small sets of pixels.
+
+Because the layout is unique, "every window matches" means the answer is
+right. In every test, all-windows-match coincided with the exact layout, and
+every failure was flagged by remaining mismatched windows.
+
+32x32 test set, noise-trained model, exact metrics (`out/eval32_finisher.log`,
+`out/retry_failures.log`):
+
+| Step | Exact layout |
+|---|---|
+| network | 70.5 % |
+| + repair | 80.5 % |
+| + finisher (without step 3) | 95.5 % |
+| + step 3, on the 9 remaining failures | 6 of 9 fixed, so 197/200 = 98.5 % |
+
+### Forward model as a stand-in for the thesis U-Net (`forward.py`)
+
+Landscape -> 56 metric maps, trained on the same 12 000 landscapes (8 epochs):
+median R2 0.94 across metrics, mean 0.85 (`out/train_forward.log`), roughly
+the thesis U-Net's level. Its predictions are used as realistic, imperfect
+inputs.
+
+32x32, input = forward-model predictions, network only (`out/eval32_predicted.jsonl`):
+
+| Inverse model | Exact layout | Windows with all metrics exact |
+|---|---|---|
+| trained with Gaussian noise | 3 % | 82.5 % |
+| fine-tuned on forward predictions (`train.py 8 0.3 ... data/forward.pt`) | 27 % | 96.3 % |
+
+Gaussian noise was a poor stand-in for real model errors; training on the
+forward model's own predictions fixes most of the gap.
+
+### 128x128 (`eval128.py`, `out/eval128_full.log`)
+
+12 test landscapes at the thesis size, inverse model fine-tuned on forward
+predictions (trained only on 32x32 maps):
+
+| Input / step | Exact layout | Windows with all metrics exact |
+|---|---|---|
+| exact metrics, network | 2 of 12 | 98.5 % |
+| exact metrics, + repair | 3 of 12 | 99.0 % |
+| exact metrics, + repair + finisher | 6 of 12 | 99.1 % |
+| forward-predicted metrics, network | 1 of 12 | 97.1 % |
+
+One 128x128 map takes about 1 min to decode, 2.5 min to repair, and up to
+~15 min in the finisher (pure Python). The unsolved maps still have mismatched
+windows, so they are flagged rather than silently wrong.
+
 ## Consequence for solving the inverse
 
 1. Metrics → spatial layout (patch boundaries + same/different class for nearby

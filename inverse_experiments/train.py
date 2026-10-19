@@ -1,4 +1,8 @@
-"""Train the inverse network. Usage: python train.py EPOCHS [NOISE_SD] [INIT_WEIGHTS]
+"""Train the inverse network.
+Usage: python train.py EPOCHS [NOISE_SD] [INIT_WEIGHTS] [FORWARD_WEIGHTS]
+
+With FORWARD_WEIGHTS, half of each batch uses metrics predicted by the forward
+model (realistic, U-Net-like errors) instead of exact metrics.
 
 NOISE_SD > 0 adds Gaussian noise to the normalised metric inputs during
 training, to mimic imperfect (e.g. U-Net predicted) metrics.
@@ -17,6 +21,11 @@ torch.manual_seed(0)
 epochs = int(sys.argv[1])
 noise = float(sys.argv[2]) if len(sys.argv) > 2 else 0.0
 tag = f"noise{noise}" if noise else "clean"
+fwd = None
+if len(sys.argv) > 4:
+    from forward import ForwardNet, predict_inverse_input
+    fwd = ForwardNet(); fwd.load_state_dict(torch.load(sys.argv[4])); fwd.eval()
+    tag += "_fwd"
 
 tr = np.load("data/train32.npz")
 te = np.load("data/test32.npz")
@@ -58,6 +67,9 @@ for ep in range(epochs):
         x = torch.from_numpy(norm(Mtr[idx]))
         if noise:
             x[:, :56] += noise * torch.randn_like(x[:, :56]) * torch.rand(len(idx), 1, 1, 1)
+        if fwd is not None:
+            h = len(idx) // 2
+            x[:h] = predict_inverse_input(fwd, Ltr[idx[:h]])
         loss = masked_bce(model(x), Ttr[idx], Ktr[idx])
         opt.zero_grad()
         loss.backward()
