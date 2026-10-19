@@ -1,4 +1,4 @@
-"""Train the inverse network. Usage: python train.py EPOCHS [NOISE_SD]
+"""Train the inverse network. Usage: python train.py EPOCHS [NOISE_SD] [INIT_WEIGHTS]
 
 NOISE_SD > 0 adds Gaussian noise to the normalised metric inputs during
 training, to mimic imperfect (e.g. U-Net predicted) metrics.
@@ -37,6 +37,8 @@ Tte, Kte = targets(Lte)
 Xte = torch.from_numpy(norm(Mte))
 
 model = InverseNet()
+if len(sys.argv) > 3:  # continue from earlier weights (e.g. the clean model)
+    model.load_state_dict(torch.load(sys.argv[3]))
 opt = torch.optim.AdamW(model.parameters(), lr=2e-3, weight_decay=1e-4)
 bs = 32
 steps = epochs * (len(Ltr) // bs)
